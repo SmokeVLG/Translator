@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Переводчик</string>
+    <string name="action_settings">Настройки</string>
+    <string name="invalid_url">Неверный URL</string>
+    <string name="hint_text">Введите предложение для перевода</string>
+    <string name="read_error">Невозможно прочитать данные о переводе</string>
+    <string name="connect_error">Невозможно подключиться к переводчику Яндекс</string>
+</resources>
+
