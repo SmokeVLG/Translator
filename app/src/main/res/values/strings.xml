@@ -5,5 +5,7 @@
     <string name="hint_text">Введите предложение для перевода</string>
     <string name="read_error">Невозможно прочитать данные о переводе</string>
     <string name="connect_error">Невозможно подключиться к переводчику Яндекс</string>
+    <string name="title_activity_favorites">Избранное</string>
+    <string name="title_activity_history">История</string>
 </resources>
 
