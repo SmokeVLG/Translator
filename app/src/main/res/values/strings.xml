@@ -9,14 +9,5 @@
     <string name="title_activity_history">История</string>
     <string name="replaceLanguage"><![CDATA[<-->]]></string>
 
-    <string name="gender_unknown">Неизвестно</string>
-    <string name="gender_male">Кот</string>
-    <string name="gender_female">Кошка</string>
-
-    <string-array name="array_gender_options">
-        <item>@string/gender_female</item>
-        <item>@string/gender_male</item>
-        <item>@string/gender_unknown</item>
-    </string-array>
 </resources>
 

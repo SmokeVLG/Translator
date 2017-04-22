@@ -2,7 +2,6 @@ package com.maxim.denisov.tranlator;
 
 import android.annotation.TargetApi;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
@@ -12,8 +11,9 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -34,6 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -72,36 +73,64 @@ public class MainActivity extends AppCompatActivity {
         translatedWordsListView.setAdapter(TranslatedWordsArrayAdapter);
         //Кнопка
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                EditText locationEditText = (EditText) findViewById(R.id.wordForTranslateEditText);
-                String wordForTranslate = locationEditText.getText().toString();
-                URL url = createURLForTranslate(wordForTranslate);
-
-                if (url != null) {
-                    //Скрытие клавиатуры
-                    dismissKeyboard(locationEditText);
-                    //Получение перевода в отдельном потоке
-                    GetTranslateTask getLocalTranslateTask = new GetTranslateTask();
-                    getLocalTranslateTask.execute(url);
-                } else {
-                    //Если ошибка  - выводим сообщение
-                    Snackbar.make(findViewById(R.id.coordinatorLayout),
-                            R.string.invalid_url, Snackbar.LENGTH_LONG).show();
+                String translatedWord = ((TextView) findViewById(R.id.translatedWordTextView)).getText().toString();
+                String word = wordForTranslateEditText.getText().toString();
+                if (translatedWord !=null)
+                {
+                    saveTranslatedWord(word,translatedWord,1);
                 }
             }
         });
+
+        EditText locationEditText = (EditText) findViewById(R.id.wordForTranslateEditText);
+        locationEditText.addTextChangedListener(new TextWatcher() {
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start,
+                                          int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start,
+                                      int before, int count) {
+                if(s.length() != 0)
+                {
+                    EditText locationEditText = (EditText) findViewById(R.id.wordForTranslateEditText);
+                    String wordForTranslate = locationEditText.getText().toString();
+                    URL url = createURLForTranslate(wordForTranslate);
+
+                    if (url != null) {
+                        //Скрытие клавиатуры
+                        //dismissKeyboard(locationEditText);
+                        //Получение перевода в отдельном потоке
+                        GetTranslateTask getLocalTranslateTask = new GetTranslateTask();
+                        getLocalTranslateTask.execute(url);
+                    } else {
+                        //Если ошибка  - выводим сообщение
+                        Snackbar.make(findViewById(R.id.coordinatorLayout),
+                                R.string.invalid_url, Snackbar.LENGTH_LONG).show();
+                    }
+                }
+            }
+        });
+
+
+
         dDbHelper = new DictionaryDbHelper(this);
 
-        leftLanguage = (Spinner) findViewById(R.id.spinner_gender1);
-        rightLanguage = (Spinner) findViewById(R.id.spinner_gender2);
+        leftLanguage = (Spinner) findViewById(R.id.spinner_left_language);
+        rightLanguage = (Spinner) findViewById(R.id.spinner_right_language);
         setupSpinners();
     }
 
-    /**
-     * Настраиваем spinner для выбора языков.
-     */
+
     private void setupSpinners() {
         URL url = createURLForGetLanguages();
         //Получение перевода в отдельном потоке
@@ -137,26 +166,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    /*Скрытие клавиатуры*/
-    private void dismissKeyboard(View view) {
-        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
     //Перейти в избранное
     public void onFavoritesClick(View view) {
         Intent intent = new Intent(MainActivity.this, FavoritesActivity.class);
         startActivity(intent);
-    }
-    //Добавить в избранное
-    public void onAddFavoritesClick(View view) {
-
-        String translatedWord = ((TextView) findViewById(R.id.translatedWordTextView)).getText().toString();
-        String word = wordForTranslateEditText.getText().toString();
-        if (translatedWord !=null)
-        {
-            saveTranslatedWord(word,translatedWord,1);
-        }
-
     }
 
     //Перейти в историю
@@ -172,18 +185,7 @@ public class MainActivity extends AppCompatActivity {
         rightLanguage.setSelection(leftLan);
     }
 
-    //Добавить в историю
-    public void onAddHistoryClick(View view) {
-
-        String translatedWord = ((TextView) findViewById(R.id.translatedWordTextView)).getText().toString();
-        String word = wordForTranslateEditText.getText().toString();
-        if (translatedWord !=null)
-        {
-            saveTranslatedWord(word,translatedWord,0);
-        }
-    }
-
-
+    //Сохранение переведенного слова
     public  void saveTranslatedWord(String word, String translation, int favorites) {
         // Gets the database in write mode
         SQLiteDatabase db = dDbHelper.getWritableDatabase();
@@ -309,12 +311,14 @@ public class MainActivity extends AppCompatActivity {
 
             for (int i = 0; i < list.length(); i++) {
                 translatedWordList.add(new TranslatedWord(list.getString(i)));
+                EditText locationEditText = (EditText) findViewById(R.id.wordForTranslateEditText);
+                String wordForTranslate = locationEditText.getText().toString();
+                saveTranslatedWord(wordForTranslate,list.getString(i),0);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
-
 
     /*Парсинг ответа о доступных языках*/
     private void parseAnswerAboutAvailableLanguages(JSONObject translatedWords) {
@@ -331,13 +335,15 @@ public class MainActivity extends AppCompatActivity {
                 allLanguagesMap.put(languageName,shortLanguageName);
                 allLanguages.add(languageName);
             }
+            Collections.sort(allLanguages);
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
         fillSpinners();
     }
-    //Настройка спиннеров для отображения языков
+
+        //Настройка спиннеров для отображения языков
     private void fillSpinners() {
         ArrayAdapter genderSpinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, allLanguages);
         genderSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);

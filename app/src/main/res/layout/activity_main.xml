@@ -17,7 +17,7 @@
         android:layout_marginBottom="@dimen/fab_margin"
         android:layout_marginLeft="@dimen/fab_margin"
         android:layout_marginRight="@dimen/fab_margin"
-        app:srcCompat="@drawable/ic_done_black_24dp" />
+        app:srcCompat="@drawable/ic_favorite_black_24dp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -27,7 +27,6 @@
             layout="@layout/content_main"
             android:layout_width="wrap_content"
             android:layout_height="400dp" />
-
 
     </RelativeLayout>
 
