@@ -20,8 +20,8 @@
         <EditText
             android:id="@+id/wordForTranslateEditText"
             android:hint="@string/hint_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="341dp"
+            android:layout_height="105dp"
             android:maxLines="1" />
 
     </android.support.design.widget.TextInputLayout>
@@ -30,6 +30,6 @@
         android:id="@+id/translatedWordsListView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.43" />
+        android:layout_weight="0.15" />
 
 </LinearLayout>

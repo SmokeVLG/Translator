@@ -1,8 +1,13 @@
 package com.maxim.denisov.tranlator;
 
 import android.annotation.TargetApi;
+import android.app.Fragment;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,6 +19,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,11 +35,16 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
+import data.DictionaryContract;
+import data.DictionaryDbHelper;
+
 public class MainActivity extends AppCompatActivity {
 
     private ArrayList<TranslatedWord> translatedWordList = new ArrayList<>();
     private TranslatedWordArrayAdapter TranslatedWordsArrayAdapter;
     private ListView translatedWordsListView;
+    private EditText wordForTranslateEditText;
+    private  DictionaryDbHelper mDbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +55,14 @@ public class MainActivity extends AppCompatActivity {
 
         //View на отображение переведенного предложения
         translatedWordsListView = (ListView) findViewById(R.id.translatedWordsListView);
+        wordForTranslateEditText = (EditText) findViewById(R.id.wordForTranslateEditText);
+
+
+
         //Получение данных о переводе
         TranslatedWordsArrayAdapter = new TranslatedWordArrayAdapter(this, translatedWordList);
         translatedWordsListView.setAdapter(TranslatedWordsArrayAdapter);
+
 
         //Кнопка
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -70,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        mDbHelper = new DictionaryDbHelper(this);
     }
 
     /*
@@ -102,6 +119,48 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(MainActivity.this, FavoritesActivity.class);
         startActivity(intent);
+
+    }
+
+    public void onAddFavoritesClick(View view) {
+
+        String translatedWord = ((TextView) findViewById(R.id.translatedWordTextView)).getText().toString();
+        String word = wordForTranslateEditText.getText().toString();
+        if (translatedWord !=null)
+        {
+            insertWord(word,translatedWord,1);
+        }
+
+    }
+
+
+    public void onHistoryClick(View view) {
+
+        Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
+        startActivity(intent);
+    }
+
+    public void onAddHistoryClick(View view) {
+
+        String translatedWord = ((TextView) findViewById(R.id.translatedWordTextView)).getText().toString();
+        String word = wordForTranslateEditText.getText().toString();
+        if (translatedWord !=null)
+        {
+            insertWord(word,translatedWord,0);
+        }
+    }
+
+
+    public  void insertWord(String word,String translation, int favorites) {
+        // Gets the database in write mode
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+        // Создаем объект ContentValues, где имена столбцов ключи,
+        // а информация о госте является значениями ключей
+        ContentValues values = new ContentValues();
+        values.put(DictionaryContract.DictionaryEntry.COLUMN_WORD, word);
+        values.put(DictionaryContract.DictionaryEntry.COLUMN_TRANSLATION, translation);
+        values.put(DictionaryContract.DictionaryEntry.COLUMN_FAVORITES, favorites);
+        db.insert(DictionaryContract.DictionaryEntry.TABLE_NAME, null, values);
     }
 
     public void onHistory(View view) {
