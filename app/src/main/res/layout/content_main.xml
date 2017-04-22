@@ -3,25 +3,52 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/content_main"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.maxim.denisov.tranlator.MainActivity"
-    tools:showIn="@layout/activity_main"
-    android:orientation="vertical">
+    tools:showIn="@layout/activity_main">
+
+    <LinearLayout
+        android:id="@+id/container_gender"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Spinner
+            android:id="@+id/spinner_gender1"
+            android:layout_width="140dp"
+            android:layout_height="48dp"
+            android:paddingRight="16dp"
+            android:spinnerMode="dropdown" />
+
+        <Button
+            android:id="@+id/button5"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:onClick="onChangeLanClick"
+            android:text="@string/replaceLanguage" />
+
+        <Spinner
+            android:id="@+id/spinner_gender2"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:paddingRight="16dp"
+            android:spinnerMode="dropdown" />
+
+    </LinearLayout>
+
 
     <android.support.design.widget.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <EditText
             android:id="@+id/wordForTranslateEditText"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
             android:hint="@string/hint_text"
-            android:layout_width="341dp"
-            android:layout_height="105dp"
             android:maxLines="1" />
 
     </android.support.design.widget.TextInputLayout>
@@ -29,7 +56,54 @@
     <ListView
         android:id="@+id/translatedWordsListView"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.15" />
+        android:layout_height="70dp"
+        android:layout_weight="0.20" />
+
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/button4"
+        android:onClick="onAddHistoryClick"
+        android:text="Добавить в историю" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/button"
+        android:onClick="onAddFavoritesClick"
+        android:text="Добавить в избранное" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:onClick="onFavoritesClick"
+        android:text="Избранное" />
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/button3"
+        android:onClick="onHistoryClick"
+        android:text="История" />
 
 </LinearLayout>

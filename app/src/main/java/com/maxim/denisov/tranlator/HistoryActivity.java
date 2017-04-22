@@ -52,18 +52,12 @@ public class HistoryActivity extends AppCompatActivity {
 
         try {
             displayTextView.setText("Словарь содержит " + cursor.getCount() + " слов.\n\n");
-            /*displayTextView.append(DictionaryContract.DictionaryEntry._ID + " - " +
-                    DictionaryContract.DictionaryEntry.COLUMN_WORD + " - " +
-                    DictionaryContract.DictionaryEntry.COLUMN_TRANSLATION + "\n");*/
-
             // Узнаем индекс каждого столбца
             int idColumnIndex = cursor.getColumnIndex(DictionaryContract.DictionaryEntry._ID);
             int wordColumnIndex = cursor.getColumnIndex(DictionaryContract.DictionaryEntry.COLUMN_WORD);
             int translationColumnIndex = cursor.getColumnIndex(DictionaryContract.DictionaryEntry.COLUMN_TRANSLATION);
 
 
-
-            // Проходим через все ряды
             while (cursor.moveToNext()) {
                 // Используем индекс для получения строки или числа
                 int currentID = cursor.getInt(idColumnIndex);
