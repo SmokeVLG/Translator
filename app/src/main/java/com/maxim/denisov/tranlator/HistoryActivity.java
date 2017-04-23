@@ -51,7 +51,7 @@ public class HistoryActivity extends AppCompatActivity {
         TextView displayTextView = (TextView) findViewById(R.id.text_view_info);
 
         try {
-            displayTextView.setText("Словарь содержит " + cursor.getCount() + " слов.\n\n");
+            displayTextView.setText("История содержит " + cursor.getCount() + " слов.\n\n");
             // Узнаем индекс каждого столбца
             int idColumnIndex = cursor.getColumnIndex(DictionaryContract.DictionaryEntry._ID);
             int wordColumnIndex = cursor.getColumnIndex(DictionaryContract.DictionaryEntry.COLUMN_WORD);
@@ -59,13 +59,11 @@ public class HistoryActivity extends AppCompatActivity {
 
 
             while (cursor.moveToNext()) {
-                // Используем индекс для получения строки или числа
-                int currentID = cursor.getInt(idColumnIndex);
                 String currentWord = cursor.getString(wordColumnIndex);
                 String currentTranslation = cursor.getString(translationColumnIndex);
 
                 // Выводим значения каждого столбца
-                displayTextView.append(("\n" + currentID + " - " +
+                displayTextView.append(("\n" +
                         currentWord + " - " +
                         currentTranslation));
             }
