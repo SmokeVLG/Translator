@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -130,220 +132,14 @@ public class MainActivity extends AppCompatActivity {
         setupSpinners();
     }
 
-
     private void setupSpinners() {
         URL url = createURLForGetLanguages();
         //Получение перевода в отдельном потоке
         GetLanguages getLanguagesTask = new GetLanguages();
         getLanguagesTask.execute(url);
     }
-    /* Получение URL для перевода */
-    private URL createURLForTranslate(String word) {
-        //формат вывода
-        String format = "tr.json/";
-        //направление перевода
-        String area = "&lang="+ leftLanguageShort +"-"+ rightLanguageShort +"&";
-        try {
-            String urlString = urlApi + format + "translate?key=" + apiKey + area + "text=" + URLEncoder.encode(word, "UTF-8");
-            return new URL(urlString);
-        } catch (UnsupportedEncodingException | MalformedURLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
-    /*Получение URL для списка языков */
-    private URL createURLForGetLanguages() {
-
-        String format = "tr.json/getLangs?ui=ru&key=";
-        try {
-            String urlString = urlApi + format + apiKey;
-            return new URL(urlString);
-        } catch ( MalformedURLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-
-    //Перейти в избранное
-    public void onFavoritesClick(View view) {
-        Intent intent = new Intent(MainActivity.this, FavoritesActivity.class);
-        startActivity(intent);
-    }
-
-    //Перейти в историю
-    public void onHistoryClick(View view) {
-        Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
-        startActivity(intent);
-    }
-
-    //Изменить язык
-    public void onChangeLanClick(View view) {
-        int leftLan = (int) leftLanguage.getSelectedItemId();
-        leftLanguage.setSelection((int) rightLanguage.getSelectedItemId());
-        rightLanguage.setSelection(leftLan);
-    }
-
-    //Сохранение переведенного слова
-    public  void saveTranslatedWord(String word, String translation, int favorites) {
-        // Gets the database in write mode
-        SQLiteDatabase db = dDbHelper.getWritableDatabase();
-        // Создаем объект ContentValues, где имена столбцов ключи,
-        // а информация о госте является значениями ключей
-        ContentValues values = new ContentValues();
-        values.put(DictionaryContract.DictionaryEntry.COLUMN_WORD, word);
-        values.put(DictionaryContract.DictionaryEntry.COLUMN_TRANSLATION, translation);
-        values.put(DictionaryContract.DictionaryEntry.COLUMN_FAVORITES, favorites);
-        db.insert(DictionaryContract.DictionaryEntry.TABLE_NAME, null, values);
-    }
-
-    //Получить перевод в отдельном потоке
-    private class GetTranslateTask extends AsyncTask<URL, Void, JSONObject> {
-
-        @TargetApi(Build.VERSION_CODES.KITKAT)
-        @Override
-        protected JSONObject doInBackground(URL... params) {
-            HttpURLConnection connection = null;
-
-            try {
-                connection = (HttpURLConnection) params[0].openConnection();
-                int response = connection.getResponseCode();
-
-                if (response == HttpURLConnection.HTTP_OK) {
-                    StringBuilder builder = new StringBuilder();
-
-                    try (BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(connection.getInputStream()))) {
-                        String line;
-
-                        while ((line = reader.readLine()) != null) {
-                            builder.append(line);
-                        }
-                    } catch (IOException e) {
-                        Snackbar.make(findViewById(R.id.coordinatorLayout),
-                                R.string.read_error, Snackbar.LENGTH_LONG).show();
-                        e.printStackTrace();
-                    }
-
-                    return new JSONObject(builder.toString());
-                } else {
-                    Snackbar.make(findViewById(R.id.coordinatorLayout),
-                            R.string.connect_error, Snackbar.LENGTH_LONG).show();
-                }
-            } catch (Exception e) {
-                Snackbar.make(findViewById(R.id.coordinatorLayout),
-                        R.string.connect_error, Snackbar.LENGTH_LONG).show();
-                e.printStackTrace();
-            } finally {
-                connection.disconnect();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(JSONObject jsonObject) {
-            parseAnswerAboutTranslateWord(jsonObject);
-            TranslatedWordsArrayAdapter.notifyDataSetChanged();
-            translatedWordsListView.smoothScrollToPosition(0);
-        }
-    }
-
-    //Получить список языков
-    private class GetLanguages extends AsyncTask<URL, Void, JSONObject> {
-
-        @TargetApi(Build.VERSION_CODES.KITKAT)
-        @Override
-        protected JSONObject doInBackground(URL... params) {
-            HttpURLConnection connection = null;
-
-            try {
-                connection = (HttpURLConnection) params[0].openConnection();
-                int response = connection.getResponseCode();
-
-                if (response == HttpURLConnection.HTTP_OK) {
-                    StringBuilder builder = new StringBuilder();
-
-                    try (BufferedReader reader = new BufferedReader(
-                            new InputStreamReader(connection.getInputStream()))) {
-                        String line;
-
-                        while ((line = reader.readLine()) != null) {
-                            builder.append(line);
-                        }
-                    } catch (IOException e) {
-                        Snackbar.make(findViewById(R.id.coordinatorLayout),
-                                R.string.read_error, Snackbar.LENGTH_LONG).show();
-                        e.printStackTrace();
-                    }
-
-                    return new JSONObject(builder.toString());
-                } else {
-                    Snackbar.make(findViewById(R.id.coordinatorLayout),
-                            R.string.connect_error, Snackbar.LENGTH_LONG).show();
-                }
-            } catch (Exception e) {
-                Snackbar.make(findViewById(R.id.coordinatorLayout),
-                        R.string.connect_error, Snackbar.LENGTH_LONG).show();
-                e.printStackTrace();
-            } finally {
-                connection.disconnect();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(JSONObject jsonObject) {
-            parseAnswerAboutAvailableLanguages(jsonObject);
-
-        }
-    }
-
-    /*Парсинг ответа о переведнном слове*/
-    private void parseAnswerAboutTranslateWord(JSONObject translatedWords) {
-        //Очищаем предудыщие переведенные слова
-        translatedWordList.clear();
-        try {
-            // Получение свойства text из json
-            JSONArray list = translatedWords.getJSONArray("text");
-
-            for (int i = 0; i < list.length(); i++) {
-                translatedWordList.add(new TranslatedWord(list.getString(i)));
-                EditText locationEditText = (EditText) findViewById(R.id.wordForTranslateEditText);
-                String wordForTranslate = locationEditText.getText().toString();
-                saveTranslatedWord(wordForTranslate,list.getString(i),0);
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /*Парсинг ответа о доступных языках*/
-    private void parseAnswerAboutAvailableLanguages(JSONObject translatedWords) {
-
-
-        try {
-            // Получение свойства text из json
-            JSONObject jsonObject = translatedWords.getJSONObject("langs");
-            Iterator<?> iterator = jsonObject.keys();
-            allLanguagesMap.clear();
-            while (iterator.hasNext()) {
-                String shortLanguageName = iterator.next().toString();
-                String languageName = jsonObject.get(shortLanguageName).toString();
-                allLanguagesMap.put(languageName,shortLanguageName);
-                allLanguages.add(languageName);
-            }
-            Collections.sort(allLanguages);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        fillSpinners();
-    }
-
-        //Настройка спиннеров для отображения языков
+    //Настройка спиннеров для отображения языков
     private void fillSpinners() {
         ArrayAdapter genderSpinnerAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, allLanguages);
         genderSpinnerAdapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
@@ -378,4 +174,199 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
+    /* Получение URL для перевода */
+    public URL createURLForTranslate(String word) {
+        //формат вывода
+        String format = "tr.json/";
+        //направление перевода
+        String area = "&lang="+ leftLanguageShort +"-"+ rightLanguageShort +"&";
+        try {
+            String urlString = urlApi + format + "translate?key=" + apiKey + area + "text=" + URLEncoder.encode(word, "UTF-8");
+            return new URL(urlString);
+        } catch (UnsupportedEncodingException | MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /*Получение URL для списка языков */
+    private URL createURLForGetLanguages() {
+
+        String format = "tr.json/getLangs?ui=ru&key=";
+        try {
+            String urlString = urlApi + format + apiKey;
+            return new URL(urlString);
+        } catch ( MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    //Перейти в избранное
+    public void onFavoritesClick(View view) {
+        Intent intent = new Intent(MainActivity.this, FavoritesActivity.class);
+        startActivity(intent);
+    }
+
+    //Перейти в историю
+    public void onHistoryClick(View view) {
+        Intent intent = new Intent(MainActivity.this, HistoryActivity.class);
+        startActivity(intent);
+    }
+
+    //Изменить язык
+    public void onChangeLanClick(View view) {
+        int leftLan = (int) leftLanguage.getSelectedItemId();
+        leftLanguage.setSelection((int) rightLanguage.getSelectedItemId());
+        rightLanguage.setSelection(leftLan);
+    }
+
+    //Сохранение переведенного слова
+    public  void saveTranslatedWord(String word, String translation, int favorites) {
+        // Gets the database in write mode
+        SQLiteDatabase db = dDbHelper.getWritableDatabase();
+        // Создаем объект ContentValues, где имена столбцов ключи,
+        // а информация о госте является значениями ключей
+        ContentValues values = new ContentValues();
+        values.put(DictionaryContract.DictionaryEntry.COLUMN_WORD, word);
+        values.put(DictionaryContract.DictionaryEntry.COLUMN_TRANSLATION, translation);
+        values.put(DictionaryContract.DictionaryEntry.COLUMN_FAVORITES, favorites);
+        db.insert(DictionaryContract.DictionaryEntry.TABLE_NAME, null, values);
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    @Nullable
+    public String getJsonObject(URL[] params) {
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) params[0].openConnection();
+            int response = connection.getResponseCode();
+
+            if (response == HttpURLConnection.HTTP_OK) {
+                StringBuilder builder = new StringBuilder();
+
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(connection.getInputStream()))) {
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        builder.append(line);
+                    }
+                } catch (IOException e) {
+                    Snackbar.make(findViewById(R.id.coordinatorLayout),
+                            R.string.read_error, Snackbar.LENGTH_LONG).show();
+                    e.printStackTrace();
+                }
+
+                return builder.toString();
+            } else {
+                Snackbar.make(findViewById(R.id.coordinatorLayout),
+                        R.string.connect_error, Snackbar.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Snackbar.make(findViewById(R.id.coordinatorLayout),
+                    R.string.connect_error, Snackbar.LENGTH_LONG).show();
+            e.printStackTrace();
+        } finally {
+            connection.disconnect();
+        }
+
+        return null;
+    }
+
+    //Получить перевод в отдельном потоке
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private class GetTranslateTask extends AsyncTask<URL, Void, JSONObject> {
+
+        @TargetApi(Build.VERSION_CODES.KITKAT)
+        @Override
+        protected JSONObject doInBackground(URL... params) {
+            String temp =  getJsonObject(params);
+            try {
+                return (new JSONObject(temp));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            parseAnswerAboutTranslateWord(jsonObject);
+            TranslatedWordsArrayAdapter.notifyDataSetChanged();
+            translatedWordsListView.smoothScrollToPosition(0);
+        }
+    }
+
+    //Получить список языков
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private class GetLanguages extends AsyncTask<URL, Void, JSONObject> {
+
+        @TargetApi(Build.VERSION_CODES.KITKAT)
+        @Override
+        protected JSONObject doInBackground(URL... params) {
+            String temp =  getJsonObject(params);
+            try {
+                return (new JSONObject(temp));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            parseAnswerAboutAvailableLanguages(jsonObject);
+
+        }
+    }
+
+    /*Парсинг ответа о переведнном слове*/
+    private String parseAnswerAboutTranslateWord(JSONObject translatedWords) {
+        //Очищаем предудыщие переведенные слова
+        translatedWordList.clear();
+        try {
+            // Получение свойства text из json
+            JSONArray list = translatedWords.getJSONArray("text");
+
+
+            String translatedWord = list.getString(0);
+            translatedWordList.add(new TranslatedWord(translatedWord));
+            EditText locationEditText = (EditText) findViewById(R.id.wordForTranslateEditText);
+            String wordForTranslate = locationEditText.getText().toString();
+            saveTranslatedWord(wordForTranslate, translatedWord,0);
+            return translatedWord;
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    /*Парсинг ответа о доступных языках*/
+    private void parseAnswerAboutAvailableLanguages(JSONObject translatedWords) {
+
+
+        try {
+            // Получение свойства text из json
+            JSONObject jsonObject = translatedWords.getJSONObject("langs");
+            Iterator<?> iterator = jsonObject.keys();
+            allLanguagesMap.clear();
+            while (iterator.hasNext()) {
+                String shortLanguageName = iterator.next().toString();
+                String languageName = jsonObject.get(shortLanguageName).toString();
+                allLanguagesMap.put(languageName,shortLanguageName);
+                allLanguages.add(languageName);
+            }
+            Collections.sort(allLanguages);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        fillSpinners();
+    }
+
+
 }
